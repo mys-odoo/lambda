@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <record id="view_sale_price_wizard_lambda" model="ir.ui.view">
+        <field name="name">sale.order.price.change.form</field>
+        <field name="model">sale.order</field>
+        <field name="arch" type="xml">
+            <form string="Product Prices Changed">
+                <group style="width:100%">
+                    <field name="message"/>
+                    <span t-esc="confirm"/>
+                </group>
+                <group>
+                    <field name="state" invisible="1"/>
+                    <field name="order_line">
+                        <tree
+                            string="Sales Order Lines"
+                            editable="top"
+                            create="false"
+                        >
+                            <header>The following product(s) had their prices changed. Please check off the product(s) that should conform to their price change. Those that remained unchecked will keep their unit price.</header>
+                            <field name="change_price"/>
+                            <field name="company_id" invisible="1"/>
+                            <field name="product_id" readonly="1"/>
+                            <field name="price_unit" readonly="1"/>
+                            <field name="alt_price" readonly="1"/>
+                        </tree>
+                    </field>
+                </group>
+                <footer>
+                    <button name="action_save_then_email" string="Save" type="object" class="oe_highlight" invisible="context.get('confirm1',False)"/>
+                    <button name="action_save_then_confirm" string="Save" type="object" class="oe_highlight" invisible="context.get('confirm2',False)"/>
+                    <button special="cancel" string="Cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>
