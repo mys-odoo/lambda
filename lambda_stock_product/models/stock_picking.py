@@ -16,7 +16,7 @@ class StockPicking(models.Model):
         result = super(StockPicking, self)._action_done()
         
         if self.sale_id and (self.sale_id.state == 'sale' or self.sale_id.state == 'done'):
-            amvs = pick.sale_id._create_invoices()
+            amvs = self.sale_id._create_invoices()
             for amv in amvs:
                 amv.action_post()
                 
@@ -24,13 +24,13 @@ class StockPicking(models.Model):
             for picking in self:
                 pdfs = []
 
-                attachment = self.env['ir.attachment'].search([('res_id', '=', picking.id)])
-                if attachment:
-                    pdfs.append(base64.decodebytes(attachment.datas))
-                    self.sale_id.message_post(
-                        attachments=[("{}.pdf".format(attachment.name), base64.decodebytes(attachment.datas))],
-                        body="Shipping Label:",
-                    )
+                # attachment = self.env['ir.attachment'].search([('res_id', '=', picking.id)])
+                # if attachment:
+                #     pdfs.append(base64.decodebytes(attachment.datas))
+                #     self.sale_id.message_post(
+                #         attachments=[("{}.pdf".format(attachment.name), base64.decodebytes(attachment.datas))],
+                #         body="Shipping Label:",
+                #     )
 
                 stock_model = self.env.ref('stock.action_report_delivery', raise_if_not_found=True)
                 delivery_slip_pdf, _ = stock_model._render_qweb_pdf(self.id)
