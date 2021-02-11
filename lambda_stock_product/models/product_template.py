@@ -18,13 +18,14 @@ class ProductTemplate(models.Model):
                     "weight": vals['weight'],
                     "volume": vals['volume']
                 })
-            return super(ProductTemplate, self.sudo()).write(vals)
+        return super(ProductTemplate, self.sudo()).write(vals)
 
 class ProductTemplateAttributeValue(models.Model):
     _name = 'product.template.attribute.value'
     _inherit = ['product.template.attribute.value', 'mail.thread']
 
-    price = fields.Float(related="product_tmpl_id.list_price", string="Original Price")
+    price = fields.Float(related="product_id.lst_price", string="Original Price")
+    product_id = fields.Many2one("product.product", string="Variant Product")
     is_price_linked = fields.Boolean(default=False, string="Is Base Product Price linked?")
     price_extra = fields.Float(
         store=True,
@@ -35,11 +36,11 @@ class ProductTemplateAttributeValue(models.Model):
         inverse="_set_price_extra",
         help="Extra price for the variant with this attribute value on sale price. eg. 200 price extra, 1000 + 200 = 1200.")
 
-    @api.depends('price', 'is_price_linked')
+    @api.depends('product_id', 'price')
     def _compute_price_extra(self):
-        for attribute_value in self:
-            if attribute_value.is_price_linked:
-                attribute_value.price_extra = attribute_value.price
+        for attr_val in self:
+            if attr_val.is_price_linked:
+                attr_val.price_extra = attr_val.price
 
     def _set_price_extra(self):
         for attribute_value in self:

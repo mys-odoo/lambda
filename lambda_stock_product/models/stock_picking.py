@@ -3,31 +3,47 @@
 from odoo import models, fields, api
 from odoo.tools import pdf
 
+import logging
 import base64
 import io
+
+_logger = logging.getLogger(__name__)
 
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
     def _action_done(self):
         result = super(StockPicking, self)._action_done()
+        
+        if self.sale_id and (self.sale_id.state == 'sale' or self.sale_id.state == 'done'):
+            amvs = self.sale_id._create_invoices()
+            for amv in amvs:
+                amv.action_post()
+                
         if self.picking_type_id.sequence_code == "OUT":
             for picking in self:
                 pdfs = []
 
-                attachment = self.env['ir.attachment'].search([('res_id', '=', picking.id)])
-                try:
-                    pdfs.append(base64.decodebytes(attachment.datas))
-                except:
-                    pass
+                # attachment = self.env['ir.attachment'].search([('res_id', '=', picking.id)])
+                # if attachment:
+                #     pdfs.append(base64.decodebytes(attachment.datas))
+                #     self.sale_id.message_post(
+                #         attachments=[("{}.pdf".format(attachment.name), base64.decodebytes(attachment.datas))],
+                #         body="Shipping Label:",
+                #     )
 
-                delivery_slip = self.env.ref('stock.action_report_delivery', raise_if_not_found=True)
-                delivery_slip_pdf, _ = delivery_slip._render_qweb_pdf(self.id)
+                stock_model = self.env.ref('stock.action_report_delivery', raise_if_not_found=True)
+                delivery_slip_pdf, _ = stock_model._render_qweb_pdf(self.id)
                 pdfs.append(delivery_slip_pdf)
 
-                inv = self.env.ref('account.account_invoices', raise_if_not_found=True)
-                inv_pdf, _ = inv._render_qweb_pdf(self.sale_id.invoice_ids.ids)
-                pdfs.append(inv_pdf)
+                inv_model = self.env.ref('account.account_invoices', raise_if_not_found=True)
+                for inv in self.sale_id.invoice_ids:
+                    inv_pdf, _ = inv_model._render_qweb_pdf(inv.id)
+                    pdfs.append(inv_pdf)
+                    picking.sale_id.message_post(
+                        attachments=[("{}.pdf".format(inv.name), inv_pdf)],
+                        body="Invoice:",
+                    )
 
                 merged_pdf = pdf.merge_pdf(pdfs)
                 
@@ -59,15 +75,4 @@ class StockPicking(models.Model):
             'carrier_id': self.carrier_id
         })
         result = self.button_validate()
-        # self.env.ref('stock.action_report_delivery').report_action(self)
         return result
-
-    @api.depends('move_type', 'immediate_transfer', 'move_lines.state', 'move_lines.picking_id')
-    def _compute_state(self):
-        super(StockPicking, self.sudo())._compute_state()
-        if self.state == 'done':
-            if self.sale_id and (self.sale_id.state == 'sale' or self.sale_id.state == 'done'):
-                amvs = self.sale_id._create_invoices()
-                for amv in amvs:
-                    amv.action_post_and_print()
-            # self.env.ref('stock').report_action(self)

@@ -20,7 +20,7 @@ class SaleOrder(models.Model):
         return super(SaleOrder, self).action_quotation_send()
 
     def action_save_then_confirm(self):
-        self.change_product_price()
+        self.change_product_price()        
         return super(SaleOrder, self).action_confirm()
 
     def action_save_then_email(self):
@@ -61,5 +61,3 @@ class SaleOrderLine(models.Model):
 
     change_price = fields.Boolean(string='Change Price?')
     alt_price = fields.Float(string='Alternate Price', related='product_id.lst_price',digits='Product Price', default=0.0)
-
-
