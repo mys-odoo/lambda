@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="product_template_form_view_inherit_lambda">
+            <field name="name">product.template.common.form.inherit.lambda</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="product.product_template_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[@name='inventory']/group[@name='inventory']//label[@for='weight']" position="replace">
+                    <label for="weight"/>
+                </xpath>
+                <xpath expr="//page[@name='inventory']/group[@name='inventory']//div[@name='weight']" position="replace">
+                    <div class="o_row" name="weight">
+                        <field name="weight"/>
+                        <span><field name="weight_uom_name"/></span>
+                    </div>
+                </xpath>
+                <xpath expr="//page[@name='inventory']/group[@name='inventory']//label[@for='volume']" position="replace">
+                    <label for="volume"/>
+                </xpath>
+                <xpath expr="//page[@name='inventory']/group[@name='inventory']//div[@name='volume']" position="replace">
+                    <div class="o_row" name="volume">
+                        <field name="volume" string="Volume"/>
+                        <span><field name="volume_uom_name"/></span>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

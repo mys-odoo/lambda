@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <template id="pdf_preview" inherit_id="web.assets_backend" name="Report Attachment Preview">
+        <xpath expr="//script[last()]" position="after">
+            <script type="text/javascript" src="/lambda_stock_product/static/src/js/report_preview.js"/>
+        </xpath>
+    </template>
+
+    <data>
+        <record model="ir.ui.view" id="product_template_attribute_value_view_form_inherit_lambda">
+            <field name="name">product.template.attribute.value.view.form.inherit.lambda</field>
+            <field name="model">product.template.attribute.value</field>
+            <field name="inherit_id" ref="product.product_template_attribute_value_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='price_extra']" position="after">
+                    <field name="is_price_linked"/>
+                    <field name="product_id"/>
+                </xpath>
+                <xpath expr="//sheet" position="after">
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>
