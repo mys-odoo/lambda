@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_lambda_returns_lambda_returns,lambda_returns.lambda_returns,model_lambda_returns_lambda_returns,base.group_user,1,1,1,1
