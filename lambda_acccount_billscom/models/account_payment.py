@@ -3,6 +3,7 @@
 
 import pprint
 import logging
+import traceback
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
@@ -95,12 +96,20 @@ class AccountPayment(models.Model):
             cr = registry(self._cr.dbname).cursor()
             self = self.with_env(self.env(cr=cr))
         try:
+            last_callback_datetime = (datetime.now()-relativedelta(days=10)).isoformat()
+
+            last_date_param = self.env['ir.config_parameter'].get_param('bills.com.last.payment.check.date')
+            last_callback_datetime = last_date_param if last_date_param else last_callback_datetime
             filters = [{
                 'field': 'updatedTime', 
                 'op': '>=', 
-                'value': (datetime.now()-relativedelta(days=10)).isoformat(),
+                'value': last_callback_datetime,
             }]
-            search_result = request.list_objects('SentPay', 0, 100, filters, raise_source_exception=True)
+            sort = [{
+                'field':'updatedTime', 
+                'asc': 1,
+            }]
+            search_result = request.list_objects('SentPay', 0, 160, filters, sort, raise_source_exception=True)
             for sentpay in search_result:
                 partner = partner_noprefetch.search([('billscom_id', '=', sentpay['vendorId'])], limit=1)
                 if not partner:
@@ -141,10 +150,11 @@ class AccountPayment(models.Model):
                         'default_move_journal_types': ('bank', 'cash')
                     }).create(payment_vals)
                 payment_id.action_post()
+                self.env['ir.config_parameter'].set_param('bills.com.last.payment.check.date', sentpay['updatedTime'])
                 if use_new_cursor:
                     cr.commit()
         except Exception as ex:
-             _logger.error(traceback.format_exc())
+            _logger.error(traceback.format_exc())
             if use_new_cursor:
                 cr.rollback()
             else:
