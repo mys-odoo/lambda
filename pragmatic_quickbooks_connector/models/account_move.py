@@ -1413,6 +1413,9 @@ class AccountInvoice(models.Model):
                                 self._cr.commit()
                             _logger.info(_("%s exported successfully to QBO" % (invoice.name)))
                             #Get Attachments
+                            type_attach = "Invoice"
+                            if invoice.partner_id.supplier_rank:
+                                type_attach = "Bill"
                             headers = {}
                             headers['Authorization'] = 'Bearer ' + str(access_token)
                             headers['Content-Type'] = 'multipart/form-data;boundary=YOjcLaTlykb6OxfYJx4O07j1MweeMFem'
@@ -1428,7 +1431,7 @@ Content-Type: application/json
    "AttachableRef": [
    {
       "EntityRef": {
-        "type": "Invoice",
+        "type": "'''+type_attach+'''",
         "value": "'''+invoice.qbo_invoice_id+'''"
       }
    }
