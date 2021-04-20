@@ -10,7 +10,7 @@
     },
     'summary': 'Odoo QuickBooks Bundle Odoo Quickbooks Desktop Connector Odoo Quickbooks  integration QuickBooks Credit Memo Quickbooks reports odoo quickbooks connect accounting app accounting reports QuickBooks Online connector online odoo accounting app',
     'description': """
-QuickBook Connector
+QuickBook Connector 
 ====================
 Odoo Quickbooks online connector is used to export invoices/bill from Odoo get them paid in QBO and import paid invoices/bills in Odoo.
 
