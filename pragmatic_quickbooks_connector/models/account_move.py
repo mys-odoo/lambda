@@ -5,6 +5,10 @@ import re
 from lxml import etree
 import requests
 
+from odoo.tools import pdf
+
+import base64 
+
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError, Warning
 
@@ -1343,7 +1347,7 @@ class AccountInvoice(models.Model):
 
     @api.model
     def export_to_qbo(self):
-        """export account invoice to QBO"""
+        print("23$@#DEF@export account invoice to QBO")
         quickbook_config = self.env['res.users'].search([('id', '=', 2)]).company_id
 
         if self._context.get('active_ids'):
@@ -1352,7 +1356,6 @@ class AccountInvoice(models.Model):
             invoices = self
 
         for invoice in invoices:
-
             if invoice.move_type == 'out_refund' or invoice.move_type == 'in_refund':
                 raise ValidationError(
                                 _("Currently Export function for Credit notes /  Refunds and Payments are not available"))
@@ -1375,6 +1378,7 @@ class AccountInvoice(models.Model):
 
             if not invoice.qbo_invoice_id:
                 if invoice.state == 'posted':
+                    
                     vals = invoice._prepare_invoice_export_dict()
                     parsed_dict = json.dumps(vals)
                     if quickbook_config.access_token:
@@ -1408,10 +1412,48 @@ class AccountInvoice(models.Model):
                                 invoice.qbo_invoice_id = response.get('IntuitResponse').get('Bill').get('Id')
                                 self._cr.commit()
                             _logger.info(_("%s exported successfully to QBO" % (invoice.name)))
+                            #Get Attachments
+                            headers = {}
+                            headers['Authorization'] = 'Bearer ' + str(access_token)
+                            headers['Content-Type'] = 'multipart/form-data;boundary=YOjcLaTlykb6OxfYJx4O07j1MweeMFem'
+                            attachments = self.env['ir.attachment'].search([('res_id', '=', invoice.id),('res_model', '=', 'account.move'),('res_name', '=', invoice.name)])
+                            if attachments:
+                                for attachment in attachments:
+                                    print(attachment.name)
+                                    raw_data = '''--YOjcLaTlykb6OxfYJx4O07j1MweeMFem
+Content-Disposition: form-data; name="file_metadata_01"; filename="attachment.json"
+Content-Type: application/json
 
+{
+   "AttachableRef": [
+   {
+      "EntityRef": {
+        "type": "Invoice",
+        "value": "'''+invoice.qbo_invoice_id+'''"
+      }
+   }
+   ],
+   "FileName": "'''+attachment.name+'''",
+   "ContentType": "'''+attachment.mimetype+'''"
+}
+
+--YOjcLaTlykb6OxfYJx4O07j1MweeMFem
+Content-Disposition: form-data; name="file_content_01"; filename="'''+attachment.name+'''"
+Content-Type: application/pdf
+Content-Transfer-Encoding: base64
+
+'''+attachment.datas.decode()+'''
+
+--YOjcLaTlykb6OxfYJx4O07j1MweeMFem​--'''
+                                        
+                                    result = requests.request('POST', quickbook_config.url + str(realmId) + "/upload?minorversion=57",
+                                                    headers=headers, data=raw_data.encode('utf-8'))
+                                    print(result.text)
+                            #END Get Attachments
                         else:
                             _logger.error(_("[%s] %s" % (result.status_code, result.reason)))
                             raise ValidationError(_("[%s] %s %s" % (result.status_code, result.reason, result.text)))
+                        
                 else:
                     if len(invoices) == 1:
                         if invoice.move_type == 'in_invoice' :
