@@ -10,7 +10,7 @@ class AccountAccount(models.Model):
 
     _inherit = 'account.account'
 
-    billscom_id = fields.Char(string='Bills.com ChartofAccounts Id', readonly=True,
+    billscom_id = fields.Char(string='Bills.com ChartofAccounts Id', readonly=True, copy=False,
                                 help='Id used for Bills reporting to bills.com. To lookup ChartofAccounts'\
                                     ' to Bills.com click button "Bills.com" lookup to link record with Bills.com')
 

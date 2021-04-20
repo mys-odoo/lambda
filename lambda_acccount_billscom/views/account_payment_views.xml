@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_account_payment_form_inherit_billscom" model="ir.ui.view">
+        <field name="name">view.account.payment.form.inherit.bllscom</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id" ref="account.view_account_payment_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='move_id']" position="after">
+                <field name="billscom_id" groups="base.group_no_one,account.group_account_manager" attrs="{'invisible': [('billscom_id', '=', False)]}"/>
+                <field name="billscom_paybill_id" groups="base.group_no_one,account.group_account_manager" attrs="{'invisible': [('billscom_paybill_id', '=', False)]}"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

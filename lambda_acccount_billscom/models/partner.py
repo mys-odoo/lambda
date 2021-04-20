@@ -18,8 +18,8 @@ class Partner(models.Model):
     _inherit = 'res.partner'
 
 
-    billscom_id = fields.Char(string='Bills.com ID', readonly=True)
-    track_1099 = fields.Boolean(string='Track 1099')
+    billscom_id = fields.Char(string='Bills.com ID', readonly=True, copy=False)
+    track_1099 = fields.Boolean(string='Track 1099', copy=False)
 
     @api.model
     def _get_BillscomRequest(self, username, password, orgid, devkey, prod):

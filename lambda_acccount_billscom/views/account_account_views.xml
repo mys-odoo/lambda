@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-
     <record id="view_account_account_form_billscom_inherit" model="ir.ui.view">
         <field name="name">view.account.account.form.billscom.inherit</field>
         <field name="model">account.account</field>
         <field name="inherit_id" ref="account.view_account_form"/>
         <field name="arch" type="xml">
             <xpath expr="//group[@name='security_group']" position="after">
-                <group name="group_billscom" string="Bills.com Configuration">
+                <group name="group_billscom" string="Bills.com Configuration" groups="account.group_account_manager">
                     <label for="billscom_id" class="o_form_label"/>
                     <div class="o_row">
                         <field name="billscom_id"/>
