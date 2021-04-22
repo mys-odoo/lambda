@@ -14,6 +14,7 @@ Once a return is generated on delivery, we’d like a credit note to be created 
 Requirement 2 - Return qty on PO
 If we create more than one return on a delivery order - we’d like all the quantities to be recognized on the respective PO, not only the quantities of the first return.
 
+Additional Request: Create a New Total Recieved field to include all recieved qty even returned. 
 
     """,
 
