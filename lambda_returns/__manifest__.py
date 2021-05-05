@@ -28,7 +28,7 @@ Additional Request: Create a New Total Recieved field to include all recieved qt
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['stock', 'purchase_stock'],
+    'depends': ['stock', 'purchase_stock', 'account'],
 
     # always loaded
     'data': [
