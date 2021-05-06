@@ -14,8 +14,8 @@ Once a return is generated on delivery, we’d like a credit note to be created 
 Requirement 2 - Return qty on PO
 If we create more than one return on a delivery order - we’d like all the quantities to be recognized on the respective PO, not only the quantities of the first return.
 
-Additional Request: Create a New Total Recieved field to include all recieved qty even returned. 
-
+Additional Request: 1. Create a New Total Recieved field to include all recieved qty even returned. 
+2. Add a (number) for additonal returns created on the same day. 
     """,
 
     'author': "Odoo Inc.",
@@ -32,8 +32,6 @@ Additional Request: Create a New Total Recieved field to include all recieved qt
 
     # always loaded
     'data': [
-        # 'security/ir.model.access.csv',
         'views/purchase_order_views.xml',
-        # 'views/templates.xml',
     ],
 }

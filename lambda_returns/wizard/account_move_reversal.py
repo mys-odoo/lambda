@@ -12,7 +12,7 @@ class AccountMoveReversal(models.TransientModel):
 
     def _prepare_default_reversal(self, move):
         res = super(AccountMoveReversal, self)._prepare_default_reversal(move)
-
+        # If there are multiple bills with same reference string, add a number to the end for multiples
         existing_bills = self.env['account.move'].search([('ref', '=like', res['ref'] + '%')])
         if existing_bills:
             res['ref'] = res['ref'] + '(%s)' % str(len(existing_bills))
