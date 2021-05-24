@@ -75,6 +75,13 @@ class LambdaApi(http.Controller):
             'attribute_id': attribute.id,
             'django_component_id': sku.get('id'),
         })
+        product_product = request.env['product.product'].sudo().create({
+            'name': sku.get('name'),
+            'type': 'product',
+            'lst_price': sku.get('cost'),
+            'sale_ok': True,
+            'purchase_ok': True,
+        })
         print("attribute_value")
         print(attribute_value)
         #Add to Product / Price
@@ -92,6 +99,14 @@ class LambdaApi(http.Controller):
             })
         else: 
             line.write({'value_ids': attribute.value_ids.ids})
+
+        product_template_attribute_value = request.env['product.template.attribute.value'].sudo().search([('product_tmpl_id', '=', product_tmpl_obj.id)])
+        for i in product_template_attribute_value:
+            product = request.env['product.product'].sudo().search([('name', '=', i.product_attribute_value_id.name)])
+            i.write({
+                        'is_price_linked': True,
+                        'product_id': product.id,
+                    })
 
     #Initial Variant
     @http.route('/api/UpdateVariant/<string:product_name>', type='http', auth="public", methods=['GET'], website=True)
@@ -120,9 +135,15 @@ class LambdaApi(http.Controller):
                     'attribute_id': attribute.id,
                     'django_component_id': item.get('id'),
                 })
+                product_product = request.env['product.product'].sudo().create({
+                    'name': item.get('name'),
+                    'type': 'product',
+                    'lst_price': item.get('cost'),
+                    'sale_ok': True,
+                    'purchase_ok': True,
+                })
             if attribute.id not in attribute_ids:
                 attribute_ids.append(attribute.id)
-        print(attribute_ids)
         #Add to Product
         for attribute_id in attribute_ids[1:len(attribute_ids)]:
             attribute = request.env['product.attribute'].sudo().search([('id', '=', attribute_id)])
@@ -131,8 +152,6 @@ class LambdaApi(http.Controller):
                 ('product_tmpl_id', '=', product_tmpl_obj.id),
             ])
             if not line:
-                print(attribute.name)
-                print(attribute.value_ids.ids)
                 line = request.env['product.template.attribute.line'].sudo().create({
                     'attribute_id': attribute.id,
                     'product_tmpl_id': product_tmpl_obj.id,
@@ -142,7 +161,7 @@ class LambdaApi(http.Controller):
         for i in product_template_attribute_value:
             product = request.env['product.product'].sudo().search([('name', '=', i.product_attribute_value_id.name)])
             i.write({
-                        'is_price_linked': item.get('name'),
+                        'is_price_linked': True,
                         'product_id': product.id,
                     })
 
