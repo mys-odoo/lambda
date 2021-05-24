@@ -1,0 +1,32 @@
+<odoo>
+  <data>
+    <record id="view_order_form_inherit" model="ir.ui.view">
+        <field name="name">view.order.form.inherit</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <data>
+                <xpath expr="//group[@name='sale_reporting']" position="after">
+                    <group name="lambda_django" string="Django" colspan="2" class="mb-0">
+                        <field name="django_so_id"/>
+                        <field name="django_purchase_order_id"/>
+                        <field name="django_purchase_order_terms"/>
+                        <field name="pdf_url"/>
+                        <field name="build_sheet_url"/>
+                    </group>
+                </xpath>
+                <xpath expr="//button[@name='action_view_invoice']" position="after">
+                    <button name="action_attachment" type="object" class="oe_stat_button" icon="fa-paperclip">
+                        <div class="o_stat_info">
+                            <field name="attachment_count" class="o_stat_value"/>
+                            <span class="o_stat_text" attrs="{'invisible': [('attachment_count', '&lt;', 2)]}"> Attachments</span>
+                            <span class="o_stat_text" attrs="{'invisible': [('attachment_count', '&gt;', 1)]}"> Attachment</span>
+                        </div>
+                    </button>
+                </xpath>
+            </data>
+        </field>
+    </record>
+
+  </data>
+</odoo>
