@@ -6,7 +6,6 @@ import base64
 import requests
 from ast import literal_eval
 from datetime import datetime, timedelta
-from ics import Calendar, Event
 from werkzeug.urls import url_encode
 from odoo.tools import html2plaintext
 import pytz
