@@ -99,13 +99,15 @@ class LambdaApi(http.Controller):
         else: 
             line.write({'value_ids': attribute.value_ids.ids})
 
-        product_template_attribute_value = request.env['product.template.attribute.value'].sudo().search([('product_tmpl_id', '=', product_tmpl_obj.id)])
-        for i in product_template_attribute_value:
-            product = request.env['product.product'].sudo().search([('name', '=', i.product_attribute_value_id.name)])
-            i.write({
-                        'is_price_linked': True,
-                        'product_id': product.id,
-                    })
+        product_template_attribute_value = request.env['product.template.attribute.value'].sudo().search([('product_tmpl_id', '=', product_tmpl_obj.id),
+        ('product_attribute_value_id', '=', attribute_value.id),
+        ('attribute_id', '=', attribute.id)])
+        # for i in product_template_attribute_value:
+        #     product = request.env['product.product'].sudo().search([('name', '=', i.product_attribute_value_id.name)])
+        product_template_attribute_value.write({
+                    'is_price_linked': True,
+                    'product_id': product_product.id,
+                })
 
     #Initial Variant
     @http.route('/api/UpdateVariant/<string:product_name>', type='http', auth="public", methods=['GET'], website=True)
