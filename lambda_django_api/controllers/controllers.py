@@ -31,8 +31,7 @@ class LambdaApi(http.Controller):
         attribute_ids = [0]
         # Prepare Attributes and Values
         attributes = request.env['product.attribute'].sudo().search([('display_type', '=', 'select'),
-                                                                    ('create_variant', '=', 'dynamic')
-                                                                ])
+                                                                    ('create_variant', '=', 'dynamic')])
         #Add to Product
         for attribute in attributes:
             line = request.env['product.template.attribute.line'].sudo().search([
@@ -55,13 +54,10 @@ class LambdaApi(http.Controller):
         return product_tmpl_obj
 
     def create_attribute_value(self, product_tmpl_obj, sku):
-        print('update_attribute_value')
         #Search/Create attriubte
         attribute = request.env['product.attribute'].sudo().search([('name', '=', sku.get('category')),
                                                                         ('display_type', '=', 'select'),
-                                                                        ('create_variant', '=', 'dynamic')
-                                                                    ])
-        print(len(attribute))
+                                                                        ('create_variant', '=', 'dynamic')])
         #Search/Create attribute_value
         if len(attribute) == 0:
                 attribute = request.env['product.attribute'].sudo().create({
@@ -81,16 +77,12 @@ class LambdaApi(http.Controller):
             'sale_ok': True,
             'purchase_ok': True,
         })
-        print("attribute_value")
-        print(attribute_value)
         #Add to Product / Price
         line = request.env['product.template.attribute.line'].sudo().search([
             ('attribute_id', '=', attribute.id),
             ('product_tmpl_id', '=', product_tmpl_obj.id),
         ])
         if len(line) == 0:
-            print('create')
-            print(attribute.value_ids)
             line = request.env['product.template.attribute.line'].sudo().create({
                 'attribute_id': attribute.id,
                 'product_tmpl_id': product_tmpl_obj.id,
@@ -100,10 +92,8 @@ class LambdaApi(http.Controller):
             line.write({'value_ids': attribute.value_ids.ids})
 
         product_template_attribute_value = request.env['product.template.attribute.value'].sudo().search([('product_tmpl_id', '=', product_tmpl_obj.id),
-        ('product_attribute_value_id', '=', attribute_value.id),
-        ('attribute_id', '=', attribute.id)])
-        # for i in product_template_attribute_value:
-        #     product = request.env['product.product'].sudo().search([('name', '=', i.product_attribute_value_id.name)])
+                                                                                                        ('product_attribute_value_id', '=', attribute_value.id),
+                                                                                                        ('attribute_id', '=', attribute.id)])
         product_template_attribute_value.write({
                     'is_price_linked': True,
                     'product_id': product_product.id,
@@ -112,7 +102,7 @@ class LambdaApi(http.Controller):
     #Initial Variant
     @http.route('/api/UpdateVariant/<string:product_name>', type='http', auth="public", methods=['GET'], website=True)
     def update_variant(self, product_name, **get):
-        path = get_module_resource('lambda_django_api', 'static/src/', 'components copy.json')
+        path = get_module_resource('lambda_django_api', 'static/src/', 'components.json')
         componentFile = open(path, 'r')
         product_tmpl_obj = request.env['product.template'].sudo().search([('name', '=', product_name)])
         file_tmp = json.loads(componentFile.read())
@@ -221,7 +211,6 @@ class LambdaApi(http.Controller):
                      })
 
             #Product
-            # for pro in product:
             #Discount
             dicsount_product = request.env['product.product'].sudo().search([('name', '=', 'Discount')])
             if len(dicsount_product) > 0:
@@ -245,14 +234,11 @@ class LambdaApi(http.Controller):
                     if len(attribute_value) == 0:
                         self.create_attribute_value(product_tmpl_obj, component.get('sku'))
 
-                # for component in bom.get('components'):
-                #     print(component.get('sku').get('id'))
                     attribute_value = request.env['product.attribute.value'].sudo().search([('django_component_id', '=', component.get('sku').get('id'))])
                     product_template_attribute_value = request.env['product.template.attribute.value'].sudo().search([('product_tmpl_id', '=', product_tmpl_obj.id)])
                     for value in product_template_attribute_value:
                         if value.attribute_id.id == attribute_value.attribute_id.id and value.product_attribute_value_id.id == attribute_value.id:
                             sku_list.append(value.id)
-                print(sku_list)
                 sku_list = sku_list[1:len(sku_list)]
             # 1. Create product with combination_indices
             #TODO: If not => Create, exist, use again
@@ -277,7 +263,6 @@ class LambdaApi(http.Controller):
                     'name': product_name,
                     'product_id': product.id,
                 })
-            
 
             #Shipment
             shipments = post_data.get('shipments')
