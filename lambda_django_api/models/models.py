@@ -46,6 +46,25 @@ class ResPartnerInherit(models.Model):
         new_res_partner = self.sudo().create(vals)
         return new_res_partner
 
+    def update_individual_by_json(self, address_json):
+        partner_obj = self.sudo().search([('django_id', '=', address_json.get('id'))])
+        
+        country_id = self.env['res.country'].search([('code', '=', address_json.get('country_code'))]).id or 233
+        state_id = self.env['res.country.state'].search([('code', '=', address_json.get('state')), ('country_id', '=', country_id) ]).id or None
+        vals  = {
+            'django_id': address_json.get('id'),
+            'name': address_json.get('name'),
+            'street': address_json.get('line_1'),
+            'street2': address_json.get('line_2'),
+            'zip': address_json.get('zipcode'),
+            'city': address_json.get('city'),
+            'country_id': country_id,
+            'state_id': state_id,
+            'company_type': 'person'
+        }
+
+        partner_obj.sudo().write(vals)
+
     def check_bill_or_ship_to_adddress(self, parent_obj, address_json, is_bill):
         partner_obj = self.sudo().search([('django_id', '=', address_json.get('id')),
                                                     ('parent_id', '=', parent_obj.id)
@@ -56,3 +75,17 @@ class ResPartnerInherit(models.Model):
         print(parent_obj.id)
         if len(partner_obj) == 0:
             self.create_individual_by_json_and_assign_parent(address_json, parent_obj)
+        else:
+            self.update_individual_by_json(address_json)
+
+
+    def api_update(self, customer_id, name, email, phone, bill_to_address, ship_to_address):
+        partner_obj = self.browse(customer_id)
+        vals  = {
+            'name': name,
+            'phone' : phone,
+            'email': email,
+        }
+        partner_obj.sudo().write(vals)
+        self.check_bill_or_ship_to_adddress(partner_obj, bill_to_address, is_bill=True)
+        self.check_bill_or_ship_to_adddress(partner_obj, ship_to_address, is_bill=False)

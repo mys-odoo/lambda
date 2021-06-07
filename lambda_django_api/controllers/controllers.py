@@ -281,3 +281,15 @@ class LambdaApi(http.Controller):
                     picking.carrier_tracking_ref = shipments[0].get('tracking_number')
 
         return result
+
+    #UpdateCustomer
+    @http.route('/api/UpdateCustomer', type='json', auth="public", website=True)
+    def update_variant(self, **post):
+        post_data = json.loads(request.httprequest.data)
+        
+        customer_id = post_data.get('customer_id')
+        bill_to_address = post_data.get('bill_to_address')
+        ship_to_address = post_data.get('ship_to_address')
+
+        request.env['res.partner'].api_update(customer_id, post_data.get('ship_to_organization'), post_data.get('ship_to_email'), post_data.get('ship_to_phone'), bill_to_address, ship_to_address)
+        
