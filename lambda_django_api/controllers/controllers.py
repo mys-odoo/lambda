@@ -102,6 +102,7 @@ class LambdaApi(http.Controller):
     #Initial Variant
     @http.route('/api/UpdateVariant/<string:product_name>', type='http', auth="public", methods=['GET'], website=True)
     def update_variant(self, product_name, **get):
+        print("update_variant")
         path = get_module_resource('lambda_django_api', 'static/src/', 'components.json')
         componentFile = open(path, 'r')
         product_tmpl_obj = request.env['product.template'].sudo().search([('name', '=', product_name)])
@@ -174,7 +175,11 @@ class LambdaApi(http.Controller):
         if bill_to_organization == ship_to_organization:
             res_partner_id = request.env['res.partner'].sudo().search([('email', '=', ship_to_email), ('phone', '=', ship_to_phone)])
             if len(res_partner_id) == 0:
-                res_partner_id = request.env['res.partner'].api_create(ship_to_address, ship_to_email, ship_to_phone)
+                print("len === 0")
+                res_partner_id = request.env['res.partner'].api_create(ship_to_organization, ship_to_email, ship_to_phone, bill_to_address, ship_to_address)
+            else:
+                request.env['res.partner'].check_bill_or_ship_to_adddress(res_partner_id, bill_to_address, is_bill=True)
+                request.env['res.partner'].check_bill_or_ship_to_adddress(res_partner_id, ship_to_address, is_bill=False)
         #SALE ORDER Datas
         if res_partner_id:
             sale_person = post_data.get('owner')
@@ -192,7 +197,8 @@ class LambdaApi(http.Controller):
                                         'django_purchase_order_id': post_data.get('purchase_order_id'),
                                         'django_purchase_order_terms': post_data.get('purchase_order_terms'),
                                         })
-
+            result['sale_order_id'] = new_sale_order.id
+            result['customer_id'] = res_partner_id.id
             #Note
             notes = post_data.get('notes')
             if (len(notes) > 0):
@@ -227,6 +233,7 @@ class LambdaApi(http.Controller):
                 product_tmpl_obj = request.env['product.template'].sudo().search([('name', '=', bom.get('product'))])
                 if len(product_tmpl_obj) == 0:
                     product_tmpl_obj = self.create_new_product_with_initial_variants(bom)
+                    self.defind_bom_for_new_product(product_tmpl_obj, bom)
                 
                 sku_list = [0]
                 for component in bom.get('components'):
@@ -273,4 +280,4 @@ class LambdaApi(http.Controller):
                 for picking in new_sale_order.picking_ids:
                     picking.carrier_tracking_ref = shipments[0].get('tracking_number')
 
-        return new_sale_order
+        return result
