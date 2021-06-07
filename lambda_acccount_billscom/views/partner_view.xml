@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record model="ir.ui.view" id="view_res_partner_form_inherit_billscom">
+            <field name="name">view.res.partner.view.inherit.billscom</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form" />
+            <field name="arch" type="xml">
+                <xpath expr="//page[@name='sales_purchases']/group" position="inside">
+                    <group name="billscom_details" groups="base.group_no_one">
+                        <group string="Bills.com Configurations" name="billscom_fields" colspan="2">
+                            <label for="billscom_id" class="o_form_label" groups="base.group_no_one,account.group_account_manager"/>
+                            <div class="o_row" groups="base.group_no_one,account.group_account_manager">
+                                <field name="billscom_id"/>
+                                <button name="upsert_vendor" icon="fa-plus-square" string="Add/Update in Bills.com" type="object" class="oe_read_only btn-link"/>
+                            </div>
+                            <field name="track_1099"/>
+                        </group>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>

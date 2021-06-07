@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_res_config_settings_view_form_billscom_inherit" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.account.billscom</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="account.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <div id="show_purchase_receipts" position="after">
+                <div class="col-xs-12 col-md-6 o_setting_box" id="billscom_config">
+                    <div class="o_setting_left_pane">
+                    </div>
+                    <div class="o_setting_right_pane" name="billscom_config_right_pane">
+                        <span class="o_form_label">Bills.com Account Configurations</span>
+                        <span class="fa fa-lg fa-building-o" title="Values set here are company-specific." role="img" aria-label="Values set here are company-specific." groups="base.group_multi_company"/>
+                        <div class="text-muted">
+                            Vendor and Bills reporting to Bills.com
+                        </div>
+                        <div class="content-group">
+                            <div class="row mt16">
+                                <label string="Username" for="billscom_username" class="col-lg-3 o_light_label"/>
+                                <field name="billscom_username" class="oe_inline"/>
+                            </div>
+                            <div class="row mt16">
+                                <label string="Passowrd" for="billscom_password" class="col-lg-3 o_light_label"/>
+                                <field name="billscom_password" class="oe_inline" password="True"/>
+                            </div>
+                            <div class="row">
+                                <label string="Organization ID" for="billscom_orgid" class="col-lg-3 o_light_label" />
+                                <field name="billscom_orgid" class="oe_inline"/>
+                            </div>
+                            <div class="row">
+                                <label string="Developer Key" for="billscom_devkey" class="col-lg-3 o_light_label" />
+                                <field name="billscom_devkey" class="oe_inline"/>
+                            </div>
+                            <div class="row">
+                                <label string="Production Credentails" for="billscom_prod" class="col-lg-3 o_light_label" />
+                                <field name="billscom_prod" class="oe_inline"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </field>
+    </record>
+
+</odoo>

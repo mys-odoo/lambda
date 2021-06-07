@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_account_journal_form_inherit_billscom" model="ir.ui.view">
+            <field name="name">view.form.account.journal.form.inherit.bills.com</field>
+            <field name="model">account.journal</field>
+            <field name="inherit_id" ref="account.view_account_journal_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//group[@name='group_alias_edit']" position="after">
+                    <group name="group_billscom"  groups="base.group_no_one,account.group_account_manager" string="Bills.com Configurations" attrs="{'invisible': [('type', '!=', 'bank')]}">
+                       <field name="billscom_id" groups="base.group_no_one,account.group_account_manager"/>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_res_partner_bank_form_inherit_lambda" model="ir.ui.view">
+            <field name="name">view.res.partner.bank.bills.com.form.inherit</field>
+            <field name="model">res.partner.bank</field>
+            <field name="inherit_id" ref="base.view_partner_bank_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet/group" position="inside">
+                    <group string="Bills.com Configurations" groups="base.group_no_one,account.group_account_manager">
+                        <field name="is_savings"/>
+                        <field name="is_personal_acct"/>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>
