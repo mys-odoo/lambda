@@ -4,12 +4,12 @@
 
     'summary': "Lambda Django APIs",
 
-    'description': "",
+    'description': "Create SO from Django, Update SO, Initial Attribute Data, Update Master BOM",
 
     'author': "Syncoria",
     'website': "http://www.syncoria.com",
 
-    'category': 'Uncategorized',
+    'category': 'Sales',
     'version': '0.1',
 
     'depends': ['base', 'sale', 'product'],
