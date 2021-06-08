@@ -7,7 +7,7 @@
         <field name="arch" type="xml">
             <data>
             <xpath expr="//page[@name='attribute_values']/field[@name='value_ids']/tree/field[@name='name']" position="after">
-                    <field name="django_component_id"/>
+                    <field name="django_component_id" readonly="1"/>
                 </xpath>
             </data>
         </field>
