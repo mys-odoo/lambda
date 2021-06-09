@@ -293,7 +293,7 @@ class LambdaApi(http.Controller):
                         #Append SKU
                         sku_list.append(product_template_attribute_value.id)
                         #Master BOM process
-                        self.process_master_bom(bom_obj, product_template_attribute_value)
+                        self.process_master_bom(bom_obj, product_template_attribute_value, component.get('qty'))
                         
                      
                 sku_list = sku_list[1:len(sku_list)]
@@ -344,7 +344,7 @@ class LambdaApi(http.Controller):
 
         request.env['res.partner'].api_update(customer_id, post_data.get('ship_to_organization'), post_data.get('ship_to_email'), post_data.get('ship_to_phone'), bill_to_address, ship_to_address)
         
-    def process_master_bom(self, bom_obj, product_template_attribute_value):
+    def process_master_bom(self, bom_obj, product_template_attribute_value, product_quantity):
         bom_line = request.env['mrp.bom.line'].sudo().search([('bom_id', '=', bom_obj.id),('product_id', '=', product_template_attribute_value.product_id.id)])
         is_exist = False
         if len(bom_line) > 0:
@@ -356,6 +356,6 @@ class LambdaApi(http.Controller):
             request.env['mrp.bom.line'].sudo().create({
                 'bom_id': bom_obj.id,
                 'product_id': product_template_attribute_value.product_id.id,
-                'product_qty': 1,
+                'product_qty': product_quantity,
                 'bom_product_template_attribute_value_ids': [(6, 0, [product_template_attribute_value.id])]
                 })    

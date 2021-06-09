@@ -22,13 +22,11 @@ class ResPartnerInherit(models.Model):
             'company_type': 'company'
         }
         new_res_partner = self.sudo().create(vals)
-        print(new_res_partner)
         self.create_individual_by_json_and_assign_parent(bill_to_address, new_res_partner)
         self.create_individual_by_json_and_assign_parent(ship_to_address,new_res_partner)
         return new_res_partner
 
     def create_individual_by_json_and_assign_parent(self, address_json, new_res_partner):
-        print("create_individual_by_json_and_assign_parent")
         country_id = self.env['res.country'].search([('code', '=', address_json.get('country_code'))]).id or 233
         state_id = self.env['res.country.state'].search([('code', '=', address_json.get('state')), ('country_id', '=', country_id) ]).id or None
         vals  = {
@@ -69,10 +67,6 @@ class ResPartnerInherit(models.Model):
         partner_obj = self.sudo().search([('django_id', '=', address_json.get('id')),
                                                     ('parent_id', '=', parent_obj.id)
                                                     ])
-        print("check_bill_or_ship_to_adddress")
-        print(partner_obj)
-        print(address_json.get('id'))
-        print(parent_obj.id)
         if len(partner_obj) == 0:
             self.create_individual_by_json_and_assign_parent(address_json, parent_obj)
         else:
