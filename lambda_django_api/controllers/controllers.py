@@ -255,7 +255,6 @@ class LambdaApi(http.Controller):
             value['id'] = attribute_value.django_component_id
             value['name'] = attribute_value.name
             array.append(value)
-        # result['all_sku'] = array[1:len(array)]
         output = {
                 'sku_data': array[1:len(array)]
             }
