@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import http, fields
-from odoo.http import request
+from odoo.http import request, Response
+from odoo.service import wsgi_server
 import json
 import base64
 import requests
@@ -14,124 +15,8 @@ from odoo.modules.module import get_module_resource
 
 
 class LambdaApi(http.Controller):
-
-    def _ids2str(self, ids):
-        return ','.join([str(i) for i in sorted(ids)])
     
-    def _redefind_sku_id(self, id, qty):
-        return id + '_qty_' + str(qty)
-    
-    def _redefind_sku_name(self, name , qty):
-        return str(qty) + ' X ' + name
-
-    def create_new_product_with_initial_variants(self, bom):
-        product_tmpl_obj = request.env['product.template'].sudo().create({
-                    'name': bom.get('product'),
-                    'type': 'product',
-                    'django_id': bom.get('id'),
-                    'django_serial_number': bom.get('serial_number'),
-                    'sale_ok': True,
-                    'purchase_ok': False,
-                    'route_ids': [[6, False, [5,1]]]
-                })
-        attribute_ids = [0]
-        # Prepare Attributes and Values
-        attributes = request.env['product.attribute'].sudo().search([('display_type', '=', 'select'),
-                                                                    ('create_variant', '=', 'dynamic')])
-        #Add to Product
-        for attribute in attributes:
-            line = request.env['product.template.attribute.line'].sudo().search([
-                ('attribute_id', '=', attribute.id),
-                ('product_tmpl_id', '=', product_tmpl_obj.id),
-            ])
-            if not line:
-                line = request.env['product.template.attribute.line'].sudo().create({
-                    'attribute_id': attribute.id,
-                    'product_tmpl_id': product_tmpl_obj.id,
-                    'value_ids': [(6, 0, attribute.value_ids.ids)],
-                })
-        product_template_attribute_value = request.env['product.template.attribute.value'].sudo().search([('product_tmpl_id', '=', product_tmpl_obj.id)])
-        for i in product_template_attribute_value:
-            product = request.env['product.product'].sudo().search([('name', '=', i.product_attribute_value_id.name)])
-            i.write({
-                        'is_price_linked': True,
-                        'product_id': product.id,
-                    })
-        return product_tmpl_obj
-
-    def create_attribute_value(self, product_tmpl_obj, sku, product_qty):
-        #Search/Create attriubte
-        attribute = request.env['product.attribute'].sudo().search([('name', '=', sku.get('category')),
-                                                                        ('display_type', '=', 'select'),
-                                                                        ('create_variant', '=', 'dynamic')])
-        #Search/Create attribute_value
-        if len(attribute) == 0:
-                attribute = request.env['product.attribute'].sudo().create({
-                    'name': sku.get('category'),
-                    'display_type': 'select',
-                    'create_variant': 'dynamic',
-                })
-        attribute_value_name = sku.get('name')
-        attribute_value_id = sku.get('id')
-        if product_qty > 1:
-            attribute_value_id = self._redefind_sku_id(sku.get('id'), product_qty)
-            attribute_value_name = self._redefind_sku_name(sku.get('name'), product_qty)
-        attribute_value = request.env['product.attribute.value'].sudo().create({
-            'name': attribute_value_name,
-            'attribute_id': attribute.id,
-            'django_component_id': attribute_value_id,
-        })
-
-        product_product = request.env['product.product'].sudo().search([('name', '=', sku.get('name')),
-                                                                        ('type', '=', 'product'),
-                                                                        ('lst_price', '=', sku.get('cost'))])
-        
-        if len(product_product) == 0:
-            product_product = request.env['product.product'].sudo().create({
-                'name': sku.get('name'),
-                'type': 'product',
-                'lst_price': sku.get('cost'),
-                'sale_ok': True,
-                'purchase_ok': True,
-            })
-        else:
-            for i in product_product:
-                if i.lst_price == sku.get('cost'):
-                    product_product = i
-                    break
-        #Add to Product / Price
-        line = request.env['product.template.attribute.line'].sudo().search([
-            ('attribute_id', '=', attribute.id),
-            ('product_tmpl_id', '=', product_tmpl_obj.id),
-        ])
-        if len(line) == 0:
-            line = request.env['product.template.attribute.line'].sudo().create({
-                'attribute_id': attribute.id,
-                'product_tmpl_id': product_tmpl_obj.id,
-                'value_ids': [(6, 0, attribute.value_ids.ids)],
-            })
-        else: 
-            line.write({'value_ids': attribute.value_ids.ids})
-
-        product_template_attribute_value = request.env['product.template.attribute.value'].sudo().search([('product_tmpl_id', '=', product_tmpl_obj.id),
-                                                                                                        ('product_attribute_value_id', '=', attribute_value.id),
-                                                                                                        ('attribute_id', '=', attribute.id)])
-        print(product_template_attribute_value)
-        print(product_product)
-        if product_qty > 1:
-            product_template_attribute_value.write({
-                        'product_id': product_product.id,
-                        'is_price_linked': False,
-                        'price_extra': product_qty * sku.get('cost')
-                    })
-        else:
-            product_template_attribute_value.write({
-                        'is_price_linked': True,
-                        'product_id': product_product.id,
-                    })
-        return attribute_value
-
-    #Initial Variant
+    ##Initial Variant
     @http.route('/api/UpdateVariant/<string:product_name>', type='http', auth="public", methods=['GET'], website=True)
     def update_variant(self, product_name, **get):
         print("update_variant")
@@ -189,7 +74,7 @@ class LambdaApi(http.Controller):
                         'product_id': product.id,
                     })
 
-    @http.route('/api/CreateOrder', type='json', auth="public", website=True)
+    @http.route('/api/order/create', type='json', auth="public", website=True)
     def create_order(self, **post):
         post_data = json.loads(request.httprequest.data)
         result = {}
@@ -334,16 +219,44 @@ class LambdaApi(http.Controller):
         return result
 
     #UpdateCustomer
-    @http.route('/api/UpdateCustomer', type='json', auth="public", website=True)
-    def update_variant(self, **post):
+    @http.route('/api/order/update_customer', type='json', auth="public", website=True)
+    def update_customer(self, **post):
         post_data = json.loads(request.httprequest.data)
-        
+        result = {}
         customer_id = post_data.get('customer_id')
         bill_to_address = post_data.get('bill_to_address')
         ship_to_address = post_data.get('ship_to_address')
 
         request.env['res.partner'].api_update(customer_id, post_data.get('ship_to_organization'), post_data.get('ship_to_email'), post_data.get('ship_to_phone'), bill_to_address, ship_to_address)
-        
+        result['customer_id'] = customer_id
+        return result
+
+    @http.route('/api/order/delete/<string:sale_order_id>', type='http', auth="public", methods=['GET'], website=True)
+    def delete_order(self, sale_order_id, **get):
+        sale_order_obj = request.env['sale.order'].sudo().browse(sale_order_id)
+        print(sale_order_obj)
+        sale_order_obj.write({
+                        'state': 'cancel',
+                    })
+        sale_order_obj.unlink()
+
+    @http.route('/api/sku/fetch_all', type='http', auth="public", methods=['GET'], website=True)
+    def fetch_all_sku(self, **get):
+        array = [0]
+        attribute_values = request.env['product.attribute.value'].sudo().search([('django_component_id', '!=', '')])
+        for attribute_value in attribute_values:
+            value = {}
+            value['id'] = attribute_value.django_component_id
+            value['name'] = attribute_value.name
+            array.append(value)
+        # result['all_sku'] = array[1:len(array)]
+        output = {
+                'sku_data': array[1:len(array)]
+            }
+        return Response(json.dumps(output),content_type='application/json;charset=utf-8',status=200)
+    
+    
+    ###UTILS
     def process_master_bom(self, bom_obj, product_template_attribute_value, product_quantity):
         bom_line = request.env['mrp.bom.line'].sudo().search([('bom_id', '=', bom_obj.id),('product_id', '=', product_template_attribute_value.product_id.id)])
         is_exist = False
@@ -359,3 +272,119 @@ class LambdaApi(http.Controller):
                 'product_qty': product_quantity,
                 'bom_product_template_attribute_value_ids': [(6, 0, [product_template_attribute_value.id])]
                 })    
+
+    def _ids2str(self, ids):
+        return ','.join([str(i) for i in sorted(ids)])
+    
+    def _redefind_sku_id(self, id, qty):
+        return id + '_qty_' + str(qty)
+    
+    def _redefind_sku_name(self, name , qty):
+        return str(qty) + ' X ' + name
+
+    def create_new_product_with_initial_variants(self, bom):
+        product_tmpl_obj = request.env['product.template'].sudo().create({
+                    'name': bom.get('product'),
+                    'type': 'product',
+                    'django_id': bom.get('id'),
+                    'django_serial_number': bom.get('serial_number'),
+                    'sale_ok': True,
+                    'purchase_ok': False,
+                    'route_ids': [[6, False, [5,1]]]
+                })
+        attribute_ids = [0]
+        # Prepare Attributes and Values
+        attributes = request.env['product.attribute'].sudo().search([('display_type', '=', 'select'),
+                                                                    ('create_variant', '=', 'dynamic')])
+        #Add to Product
+        for attribute in attributes:
+            line = request.env['product.template.attribute.line'].sudo().search([
+                ('attribute_id', '=', attribute.id),
+                ('product_tmpl_id', '=', product_tmpl_obj.id),
+            ])
+            if not line:
+                line = request.env['product.template.attribute.line'].sudo().create({
+                    'attribute_id': attribute.id,
+                    'product_tmpl_id': product_tmpl_obj.id,
+                    'value_ids': [(6, 0, attribute.value_ids.ids)],
+                })
+        product_template_attribute_value = request.env['product.template.attribute.value'].sudo().search([('product_tmpl_id', '=', product_tmpl_obj.id)])
+        for i in product_template_attribute_value:
+            product = request.env['product.product'].sudo().search([('name', '=', i.product_attribute_value_id.name)])
+            i.write({
+                        'is_price_linked': True,
+                        'product_id': product.id,
+                    })
+        return product_tmpl_obj
+
+    def create_attribute_value(self, product_tmpl_obj, sku, product_qty):
+        #Search/Create attriubte
+        attribute = request.env['product.attribute'].sudo().search([('name', '=', sku.get('category')),
+                                                                        ('display_type', '=', 'select'),
+                                                                        ('create_variant', '=', 'dynamic')])
+        #Search/Create attribute_value
+        if len(attribute) == 0:
+                attribute = request.env['product.attribute'].sudo().create({
+                    'name': sku.get('category'),
+                    'display_type': 'select',
+                    'create_variant': 'dynamic',
+                })
+        attribute_value_name = sku.get('name')
+        attribute_value_id = sku.get('id')
+        if product_qty > 1:
+            attribute_value_id = self._redefind_sku_id(sku.get('id'), product_qty)
+            attribute_value_name = self._redefind_sku_name(sku.get('name'), product_qty)
+        attribute_value = request.env['product.attribute.value'].sudo().create({
+            'name': attribute_value_name,
+            'attribute_id': attribute.id,
+            'django_component_id': attribute_value_id,
+        })
+
+        product_product = request.env['product.product'].sudo().search([('name', '=', sku.get('name')),
+                                                                        ('type', '=', 'product'),
+                                                                        ('lst_price', '=', sku.get('cost'))])
+        
+        if len(product_product) == 0:
+            product_product = request.env['product.product'].sudo().create({
+                'name': sku.get('name'),
+                'type': 'product',
+                'lst_price': sku.get('cost'),
+                'sale_ok': True,
+                'purchase_ok': True,
+            })
+        else:
+            for i in product_product:
+                if i.lst_price == sku.get('cost'):
+                    product_product = i
+                    break
+        #Add to Product / Price
+        line = request.env['product.template.attribute.line'].sudo().search([
+            ('attribute_id', '=', attribute.id),
+            ('product_tmpl_id', '=', product_tmpl_obj.id),
+        ])
+        if len(line) == 0:
+            line = request.env['product.template.attribute.line'].sudo().create({
+                'attribute_id': attribute.id,
+                'product_tmpl_id': product_tmpl_obj.id,
+                'value_ids': [(6, 0, attribute.value_ids.ids)],
+            })
+        else: 
+            line.write({'value_ids': attribute.value_ids.ids})
+
+        product_template_attribute_value = request.env['product.template.attribute.value'].sudo().search([('product_tmpl_id', '=', product_tmpl_obj.id),
+                                                                                                        ('product_attribute_value_id', '=', attribute_value.id),
+                                                                                                        ('attribute_id', '=', attribute.id)])
+        print(product_template_attribute_value)
+        print(product_product)
+        if product_qty > 1:
+            product_template_attribute_value.write({
+                        'product_id': product_product.id,
+                        'is_price_linked': False,
+                        'price_extra': product_qty * sku.get('cost')
+                    })
+        else:
+            product_template_attribute_value.write({
+                        'is_price_linked': True,
+                        'product_id': product_product.id,
+                    })
+        return attribute_value
