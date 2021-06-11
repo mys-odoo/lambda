@@ -69,10 +69,16 @@ class LambdaApi(http.Controller):
         product_template_attribute_value = request.env['product.template.attribute.value'].sudo().search([('product_tmpl_id', '=', product_tmpl_obj.id)])
         for i in product_template_attribute_value:
             product = request.env['product.product'].sudo().search([('name', '=', i.product_attribute_value_id.name)])
-            i.write({
-                        'is_price_linked': True,
-                        'product_id': product.id,
-                    })
+            if len(product) >1:
+                i.write({
+                            'is_price_linked': True,
+                            'product_id': product[1].id,
+                        })
+            else: 
+                i.write({
+                            'is_price_linked': True,
+                            'product_id': product.id,
+                        })
 
     @http.route('/api/order/create', type='json', auth="public", website=True)
     def create_order(self, **post):
