@@ -41,6 +41,8 @@ class ResPartnerInherit(models.Model):
             'parent_id': new_res_partner.id,
             'company_type': 'person'
         }
+        print("create_individual_by_json_and_assign_parent")
+        print(vals)
         new_res_partner = self.sudo().create(vals)
         return new_res_partner
 
@@ -74,11 +76,17 @@ class ResPartnerInherit(models.Model):
 
 
     def api_update(self, customer_id, name, email, phone, bill_to_address, ship_to_address):
+        print("api_update3324234s2")
+        print(customer_id)
+        print(name)
+        print(phone)
+        print(email)
         partner_obj = self.browse(customer_id)
         vals  = {
             'name': name,
             'phone' : phone,
             'email': email,
+            'company_id': 1
         }
         partner_obj.sudo().write(vals)
         self.check_bill_or_ship_to_adddress(partner_obj, bill_to_address, is_bill=True)

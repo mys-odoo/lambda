@@ -12,7 +12,7 @@
     'category': 'Sales',
     'version': '0.1',
 
-    'depends': ['base', 'sale', 'product'],
+    'depends': ['base', 'sale', 'product', 'syncoria_api_authentication'],
 
     'data': [
         # 'security/ir.model.access.csv',

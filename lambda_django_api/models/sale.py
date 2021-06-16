@@ -26,3 +26,8 @@ class SaleOrderInherit(models.Model):
         }
         action['domain'] = ['&', ('res_model', '=', 'sale.order'), ('res_id', 'in', self.ids)]
         return action
+
+class SaleOrderLineInherit(models.Model):
+    _inherit = 'sale.order.line'
+
+    serial_number = fields.Char(string='Serial Number')

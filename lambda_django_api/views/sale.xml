@@ -24,6 +24,9 @@
                         </div>
                     </button>
                 </xpath>
+                <xpath expr="//page[@name='order_lines']/field/tree/field[@name='name']" position="after">
+                    <field name="serial_number"/>
+                </xpath>
             </data>
         </field>
     </record>
