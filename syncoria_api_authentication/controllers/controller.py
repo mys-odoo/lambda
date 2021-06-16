@@ -49,38 +49,38 @@ class SyncoriaApi(http.Controller):
             values = json.loads(request.httprequest.data)
             db = values.get('db', False)
             if db:
-                if db in http.db_list():
-                    login = values.get('login', False)
-                    password = values.get('password', False)
-                    print(login)
-                    print(password)
-                    if login!= "" and password!= "":
-                        user = request.env['res.users'].syncoria_login(db, login, password)   
-                        if user:
-                                res['meta'].update({
-                                    'status': True,
-                                    'message': 'Login successfull.'
-                                })
-                                res['data'].update({
-                                    "token": user.token,
-                                    "db": db,
-                                    "expire": user.date_expire,
-                                })
-                                return res
-                        else:
+                # if db in http.db_list():
+                login = values.get('login', False)
+                password = values.get('password', False)
+                print(login)
+                print(password)
+                if login!= "" and password!= "":
+                    user = request.env['res.users'].syncoria_login(db, login, password)   
+                    if user:
                             res['meta'].update({
-                                "status_code": 401,
-                                'message': "Username or password is incorrect. Please try again."})
+                                'status': True,
+                                'message': 'Login successfull.'
+                            })
+                            res['data'].update({
+                                "token": user.token,
+                                "db": db,
+                                "expire": user.date_expire,
+                            })
+                            return res
                     else:
                         res['meta'].update({
-                            "status_code": 403,
-                            'message': "Username or password is missing. Please check again."
-                        })
+                            "status_code": 401,
+                            'message': "Username or password is incorrect. Please try again."})
                 else:
                     res['meta'].update({
-                        "status_code": 404,
-                        "message": "No database found on server. Contact the manager or the system administrator."
+                        "status_code": 403,
+                        'message': "Username or password is missing. Please check again."
                     })
+                # else:
+                #     res['meta'].update({
+                #         "status_code": 404,
+                #         "message": "No database found on server. Contact the manager or the system administrator."
+                #     })
             else:
                 res['meta'].update({
                     "status_code": 401,
