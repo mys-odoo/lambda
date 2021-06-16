@@ -47,7 +47,9 @@ class SyncoriaApi(http.Controller):
         }
         try:
             values = json.loads(request.httprequest.data)
-            db = values.get('db', False) or ensure_db() or False
+            db = values.get('db', False)
+            print("SyncoriaApi")
+            print(http.db_list())
             if db:
                 if db in http.db_list():
                     login = values.get('login', False)
