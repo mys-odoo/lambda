@@ -57,13 +57,14 @@ class SyncoriaApi(http.Controller):
                     print(login)
                     print(password)
                     if login!= "" and password!= "":
-                        user = request.env['res.users'].syncoria_login(db, login, password)   
-                        #Test
                         res['meta'].update({
                                     'status': True,
                                     'message': 'Test.'
                                 })
                         return res
+                        user = request.env['res.users'].syncoria_login(db, login, password)   
+                        #Test
+                        
 
                         if user:
                                 res['meta'].update({
