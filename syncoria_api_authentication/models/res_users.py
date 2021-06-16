@@ -11,10 +11,10 @@ class ResUsers(models.Model):
     
     token = fields.Char('Token', copy=False)
     date_expire = fields.Datetime(string='Token Expire')
-
+    
     def syncoria_login(self, db, login, password):
         res = False
-        uid = self.authenticate(db, login, password, False)
+        uid = self.with_user(SUPERUSER_ID).authenticate(db, login, password, False)
         if uid:
             user = self.with_user(SUPERUSER_ID).browse(uid)
             res = '%s-%s' % (user.login, datetime.now().strftime(DEFAULT_SERVER_DATETIME_FORMAT))
