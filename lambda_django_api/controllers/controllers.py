@@ -195,7 +195,7 @@ class LambdaApi(http.Controller):
                 boms = post_data.get('boms')
                 for bom in boms:
                     #I. PROCESS PRODUCT
-                    product_tmpl_obj = request.env['product.template'].sudo().search([('name', '=', bom.get('product'))])
+                    product_tmpl_obj = request.env['product.template'].sudo().search([('name', '=ilike', bom.get('product'))])
                     if len(product_tmpl_obj) == 0:
                         product_tmpl_obj = self.create_new_product_with_initial_variants(bom)
                         # self.defind_bom_for_new_product(product_tmpl_obj, bom)
@@ -414,7 +414,7 @@ class LambdaApi(http.Controller):
     ###UTILS
     def process_master_bom(self, bom_obj, product_template_attribute_value, product_quantity):
         print("process_master_bom")
-        print(product_template_attribute_value.product_id)
+        print(product_template_attribute_value)
         bom_line = request.env['mrp.bom.line'].sudo().search([('bom_id', '=', bom_obj.id),('product_id', '=', product_template_attribute_value.product_id.id)])
         is_exist = False
         if len(bom_line) > 0:
