@@ -9,8 +9,8 @@ class SaleOrderInherit(models.Model):
     django_so_id = fields.Char(string='Id')
     django_purchase_order_id = fields.Char(string='PO Id')
     django_purchase_order_terms = fields.Char(string='Purchase Order Terms')
-    pdf_url = fields.Char(string='PDF URL')
-    build_sheet_url = fields.Char(string='Sheet URL')
+    # pdf_url = fields.Char(string='PDF URL')
+    # build_sheet_url = fields.Char(string='Sheet URL')
 
     attachment_count = fields.Integer('# Image', compute='_compute_attachment_count')
 

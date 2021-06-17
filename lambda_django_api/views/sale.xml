@@ -11,8 +11,8 @@
                         <field name="django_so_id"/>
                         <field name="django_purchase_order_id"/>
                         <field name="django_purchase_order_terms"/>
-                        <field name="pdf_url"/>
-                        <field name="build_sheet_url"/>
+                        <!-- <field name="pdf_url"/>
+                        <field name="build_sheet_url"/> -->
                     </group>
                 </xpath>
                 <xpath expr="//button[@name='action_view_invoice']" position="after">

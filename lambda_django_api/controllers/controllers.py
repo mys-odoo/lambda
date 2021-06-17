@@ -16,6 +16,7 @@ import pytz
 import os
 from odoo.modules.module import get_module_resource
 _logger = logging.getLogger(__name__)
+BASE_URL = "https://lambdalabs.com/"
 
 class LambdaApi(http.Controller):
     
@@ -136,8 +137,8 @@ class LambdaApi(http.Controller):
                                             'user_id': request.env['res.users'].sudo().search([('name', '=', post_data.get('owner'))]).id or None,
                                             'partner_id': res_partner_id.id,
                                             'date_order': datetime.utcfromtimestamp(post_data.get('date')).strftime('%Y-%m-%d %H:%M:%S'),
-                                            'pdf_url': post_data.get('pdf_url'),
-                                            'build_sheet_url': post_data.get('build_sheet_url'),
+                                            # 'pdf_url': BASE_URL + post_data.get('pdf_url'),
+                                            # 'build_sheet_url': BASE_URL + post_data.get('build_sheet_url'),
                                             'django_so_id': post_data.get('id'),
                                             'django_purchase_order_id': post_data.get('purchase_order_id'),
                                             'django_purchase_order_terms': post_data.get('purchase_order_terms'),
@@ -155,6 +156,20 @@ class LambdaApi(http.Controller):
                     for note in notes:
                         new_sale_order.message_post(body=note.get('body'))
                 #Attachment
+                pdf_url_attachment = request.env['ir.attachment'].sudo().create({
+                            'name': "PDF Invoice",
+                            'res_model': 'sale.order',
+                            'res_id': new_sale_order.id,
+                            'type': 'url',
+                            'url': BASE_URL + post_data.get('pdf_url'),
+                        })
+                build_sheet_url_attachment = request.env['ir.attachment'].sudo().create({
+                            'name': "Build Sheets",
+                            'res_model': 'sale.order',
+                            'res_id': new_sale_order.id,
+                            'type': 'url',
+                            'url': BASE_URL + post_data.get('build_sheet_url'),
+                        })
                 attachments = post_data.get('files')
                 if (len(attachments) > 0):
                     for attachment in attachments:
@@ -163,7 +178,7 @@ class LambdaApi(http.Controller):
                             'res_model': 'sale.order',
                             'res_id': new_sale_order.id,
                             'type': 'url',
-                            'url': attachment.get('url'),
+                            'url': BASE_URL + attachment.get('url'),
                         })
 
                 #Product
