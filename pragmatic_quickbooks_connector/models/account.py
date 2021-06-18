@@ -86,7 +86,7 @@ class AccountAccount(models.Model):
             if account.get('AccountType') == 'Bank':
 #                 brw_acc_type = acc_type.search([('name', '=', 'Bank and Cash')], limit=1)
                 brw_acc_type = acc_type.search([('name', '=', 'Current Assets')], limit=1)
-            elif account.get('AccountType') == 'Other Current Assets':
+            elif account.get('AccountType') == 'Other Current Asset':
 #                 brw_acc_type = acc_type.search([('name', '=', 'Non-current Assets')], limit=1)
                 brw_acc_type = acc_type.search([('name', '=', 'Current Assets')], limit=1)
             elif account.get('AccountType') == 'Fixed Asset':
