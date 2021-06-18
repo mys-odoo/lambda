@@ -8,8 +8,8 @@
             <data>
                 <xpath expr="//group[@name='sale_reporting']" position="after">
                     <group name="lambda_django" string="Django" colspan="2" class="mb-0">
-                        <field name="django_so_id"/>
-                        <field name="django_purchase_order_id"/>
+                        <field name="django_so_id" string="Django Quote Id"/>
+                        <field name="django_purchase_order_id" string="Customer Purchase Order No"/>
                         <field name="django_purchase_order_terms"/>
                         <!-- <field name="pdf_url"/>
                         <field name="build_sheet_url"/> -->
