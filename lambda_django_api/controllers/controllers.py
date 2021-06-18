@@ -126,8 +126,8 @@ class LambdaApi(http.Controller):
                 else:
                     request.env['res.partner'].check_bill_or_ship_to_adddress(res_partner_id, bill_to_address, is_bill=True)
                     request.env['res.partner'].check_bill_or_ship_to_adddress(res_partner_id, ship_to_address, is_bill=False)
-            partner_invoice_id = request.env['res.partner'].sudo().search([('django_id', '=', bill_to_address.get('id'))])
-            partner_shipping_id = request.env['res.partner'].sudo().search([('django_id', '=', ship_to_address.get('id'))])
+            partner_invoice_id = request.env['res.partner'].sudo().search([('django_id', '=', bill_to_address.get('id'))], limit=1)
+            partner_shipping_id = request.env['res.partner'].sudo().search([('django_id', '=', ship_to_address.get('id'))], limit=1)
             #SALE ORDER Datas
             if res_partner_id:
                 sale_person = post_data.get('owner')
@@ -138,8 +138,8 @@ class LambdaApi(http.Controller):
                 new_sale_order = request.env['sale.order'].sudo().create({
                                             'user_id': request.env['res.users'].sudo().search([('name', '=', post_data.get('owner'))]).id or None,
                                             'partner_id': res_partner_id.id,
-                                            'partner_invoice_id': partner_invoice_id,
-                                            'partner_shipping_id': partner_shipping_id,
+                                            'partner_invoice_id': partner_invoice_id.id,
+                                            'partner_shipping_id': partner_shipping_id.id,
                                             'date_order': datetime.utcfromtimestamp(post_data.get('date')).strftime('%Y-%m-%d %H:%M:%S'),
                                             # 'pdf_url': BASE_URL + post_data.get('pdf_url'),
                                             # 'build_sheet_url': BASE_URL + post_data.get('build_sheet_url'),
