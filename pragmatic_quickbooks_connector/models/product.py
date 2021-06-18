@@ -179,6 +179,7 @@ class Product(models.Model):
 
     @api.model
     def get_qbo_product_ref(self, product):
+        print("get_qbo_product_ref")
         if product.qbo_product_id:
             return product.qbo_product_id
         else:
@@ -220,6 +221,7 @@ class Product(models.Model):
 
     # @api.multi
     def export_product_to_qbo(self):
+        print("export_product_to_qbo")
 
         for product_id in self:
 
@@ -389,6 +391,8 @@ class Product(models.Model):
                             vals.update({'SyncToken': synctoken})
                             # del vals['QtyOnHand'] Commented as API now allows to update qty on hand
                             parsed_dict = json.dumps(vals)
+                            print("export_product")
+                            print(parsed_dict)
                             result = requests.request('POST', company.url + str(realmId) + "/item?operation=update&minorversion=12", headers=headers,
                                                       data=parsed_dict)
 
@@ -613,8 +617,8 @@ class ProductProduct(models.Model):
             #         Product details to be exported to Quickbooks
             
             product_name = product_id.name
-            for prd in product_id.product_template_attribute_value_ids:
-                product_name =  product_name + ' '+ str(prd.name)
+            # for prd in product_id.product_template_attribute_value_ids:
+            #     product_name =  product_name + ' '+ str(prd.name)
                 
             vals = {
                 "Name": product_name,
