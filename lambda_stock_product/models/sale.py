@@ -8,19 +8,19 @@ class SaleOrder(models.Model):
     message = fields.Text(string="The following product(s) had their prices changed. Please check off the product(s) that should conform to their price change. Those that remained unchecked will keep their unit price.", readonly=True, store=True)
 
     def action_confirm(self):
-        popup = self.check_products(True)
-        if popup:
-            return popup
+        # popup = self.check_products(True)
+        # if popup:
+        #     return popup
         return super(SaleOrder, self).action_confirm()
 
     def action_quotation_send(self):
-        popup = self.check_products(False)
-        if popup:
-            return popup
+        # popup = self.check_products(False)
+        # if popup:
+        #     return popup
         return super(SaleOrder, self).action_quotation_send()
 
     def action_save_then_confirm(self):
-        self.change_product_price()        
+        self.change_product_price()
         return super(SaleOrder, self).action_confirm()
 
     def action_save_then_email(self):
