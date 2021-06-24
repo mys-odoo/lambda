@@ -32,7 +32,7 @@
     'category': 'Custom Development',
     'license': 'OEEL-1',
     'version': '0.1',
-    'depends': ['stock','sale_management'],
+    'depends': ['stock','sale_management', 'delivery', 'sale_stock'],
     'data': [
         'views/stock_picking_views.xml',
         'views/product_attributes_views.xml',

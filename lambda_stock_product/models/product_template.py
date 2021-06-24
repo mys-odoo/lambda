@@ -25,7 +25,7 @@ class ProductTemplateAttributeValue(models.Model):
     _inherit = ['product.template.attribute.value', 'mail.thread']
 
     price = fields.Float(related="product_id.lst_price", string="Original Price")
-    product_id = fields.Many2one("product.product", string="Variant Product")
+    product_id = fields.Many2one("product.product", string="Variant Product",)
     is_price_linked = fields.Boolean(default=False, string="Is Base Product Price linked?")
     price_extra = fields.Float(
         store=True,
