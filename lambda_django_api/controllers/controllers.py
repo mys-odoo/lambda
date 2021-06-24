@@ -428,7 +428,7 @@ class LambdaApi(http.Controller):
         #Parent
         partner_id = None
         if bill_to_organization == ship_to_organization:
-            partner_id = request.env['res.partner'].sudo().search([('email', '=', ship_to_email), ('phone', '=', ship_to_phone)])
+            partner_id = request.env['res.partner'].sudo().search([('email', '=', ship_to_email), ('phone', '=', ship_to_phone)], limit=1)
             if len(partner_id) == 0:
                 partner_id = request.env['res.partner'].api_create(ship_to_organization, ship_to_email, ship_to_phone, bill_to_address, ship_to_address)
             partner_invoice_id.sudo().write({'parent_id': partner_id.id})
