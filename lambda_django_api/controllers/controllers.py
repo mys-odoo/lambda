@@ -23,7 +23,6 @@ class LambdaApi(http.Controller):
     ##Initial Variant
     @http.route('/api/UpdateVariant/<string:product_name>', type='http', auth="public", methods=['GET'], website=True)
     def update_variant(self, product_name, **get):
-        print("update_variant")
         path = get_module_resource('lambda_django_api', 'static/src/', 'components.json')
         componentFile = open(path, 'r')
         product_tmpl_obj = request.env['product.template'].sudo().search([('name', '=', product_name)])
@@ -107,29 +106,9 @@ class LambdaApi(http.Controller):
         #End check TOKEN
         try:
             post_data = json.loads(request.httprequest.data)
-            #Bill to
-            bill_to_organization = post_data.get('bill_to_organization')
-            bill_to_email = post_data.get('bill_to_email')
-            bill_to_phone = post_data.get('bill_to_phone')
-            bill_to_address = post_data.get('bill_to_address')
-            #Ship to
-            ship_to_organization = post_data.get('ship_to_organization')
-            ship_to_email = post_data.get('ship_to_email')
-            ship_to_phone = post_data.get('ship_to_phone')
-            ship_to_address = post_data.get('ship_to_address')
-            res_partner_id = None
-            if bill_to_organization == ship_to_organization:
-                res_partner_id = request.env['res.partner'].sudo().search([('email', '=', ship_to_email), ('phone', '=', ship_to_phone)])
-                if len(res_partner_id) == 0:
-                    print("len === 0")
-                    res_partner_id = request.env['res.partner'].api_create(ship_to_organization, ship_to_email, ship_to_phone, bill_to_address, ship_to_address)
-                else:
-                    request.env['res.partner'].check_bill_or_ship_to_adddress(res_partner_id, bill_to_address, is_bill=True)
-                    request.env['res.partner'].check_bill_or_ship_to_adddress(res_partner_id, ship_to_address, is_bill=False)
-            partner_invoice_id = request.env['res.partner'].sudo().search([('django_id', '=', bill_to_address.get('id'))], limit=1)
-            partner_shipping_id = request.env['res.partner'].sudo().search([('django_id', '=', ship_to_address.get('id'))], limit=1)
+            res_partners = self.process_res_partner(post_data)
             #SALE ORDER Datas
-            if res_partner_id:
+            if res_partners['partner_id']:
                 sale_person = post_data.get('owner')
                 sale_person_obj = request.env['res.users'].sudo().search([('name', '=', sale_person)])
                 if not sale_person_obj:
@@ -137,9 +116,9 @@ class LambdaApi(http.Controller):
                                                             'login': sale_person+'@lambda.com' })
                 new_sale_order = request.env['sale.order'].sudo().create({
                                             'user_id': request.env['res.users'].sudo().search([('name', '=', post_data.get('owner'))]).id or None,
-                                            'partner_id': res_partner_id.id,
-                                            'partner_invoice_id': partner_invoice_id.id,
-                                            'partner_shipping_id': partner_shipping_id.id,
+                                            'partner_id': res_partners['partner_id'].id,
+                                            'partner_invoice_id': res_partners['partner_invoice_id'].id,
+                                            'partner_shipping_id': res_partners['partner_shipping_id'].id,
                                             'date_order': datetime.utcfromtimestamp(post_data.get('date')).strftime('%Y-%m-%d %H:%M:%S'),
                                             # 'pdf_url': BASE_URL + post_data.get('pdf_url'),
                                             # 'build_sheet_url': BASE_URL + post_data.get('build_sheet_url'),
@@ -152,7 +131,7 @@ class LambdaApi(http.Controller):
                         'message': 'Create order successfull.',
                     })
                 res['data'].update({"sale_order_id": new_sale_order.id,
-                                    "odoo_customer_id": res_partner_id.id
+                                    "odoo_customer_id": res_partners['partner_id'].id
                                     })
                 #Note
                 notes = post_data.get('notes')
@@ -187,7 +166,7 @@ class LambdaApi(http.Controller):
 
                 #Product
                 #Discount
-                dicsount_product = request.env['product.product'].sudo().search([('name', '=', 'Discount')])
+                dicsount_product = request.env['product.product'].sudo().search([('name', '=like', 'Discount')])
                 if len(dicsount_product) > 0:
                     request.env['sale.order.line'].sudo().create({
                         'order_id': new_sale_order.id,
@@ -218,9 +197,7 @@ class LambdaApi(http.Controller):
                         django_component_id = component.get('sku').get('id')
                         if component.get('qty') > 1:
                             django_component_id = self._redefind_sku_id(component.get('sku').get('id'), component.get('qty'))
-                        print(django_component_id)
                         attribute_value = request.env['product.attribute.value'].sudo().search([('django_component_id', '=', django_component_id)])
-                        print(attribute_value)
                         if len(attribute_value) == 0:
                             attribute_value = self.create_attribute_value(product_tmpl_obj, component.get('sku'), component.get('qty'))
 
@@ -228,9 +205,20 @@ class LambdaApi(http.Controller):
                         product_template_attribute_value = request.env['product.template.attribute.value'].sudo().search([('product_tmpl_id', '=', product_tmpl_obj.id),
                                                                                                             ('product_attribute_value_id', '=', attribute_value.id),
                                                                                                             ('attribute_id', '=', attribute_value.attribute_id.id)])
+                        
                         if len(product_template_attribute_value) > 0:
                             #Append SKU
                             sku_list.append(product_template_attribute_value.id)
+                            #Make sure has product_id
+                                #CASE: create a new product and old value with > 1 qty already exists
+                            if not product_template_attribute_value.product_id and component.get('qty') > 1:
+                                product = request.env['product.product'].sudo().search([('name', '=', component.get('sku').get('name'))])
+                                product_template_attribute_value.write({
+                                    'product_id': product.id,
+                                    'is_price_linked': False,
+                                    'price_extra': component.get('qty') * component.get('sku').get('cost')
+                                })
+                            #
                             #Master BOM process
                             self.process_master_bom(bom_obj, product_template_attribute_value, component.get('qty'))
                             
@@ -416,9 +404,45 @@ class LambdaApi(http.Controller):
     
     
     ###UTILS
+    def process_res_partner(self, post_data):
+        
+        #Bill to
+        bill_to_organization = post_data.get('bill_to_organization')
+        bill_to_email = post_data.get('bill_to_email')
+        bill_to_phone = post_data.get('bill_to_phone')
+        bill_to_address = post_data.get('bill_to_address')
+        #Ship to
+        ship_to_organization = post_data.get('ship_to_organization')
+        ship_to_email = post_data.get('ship_to_email')
+        ship_to_phone = post_data.get('ship_to_phone')
+        ship_to_address = post_data.get('ship_to_address')
+
+        #Create bill_to_address
+        partner_invoice_id = request.env['res.partner'].sudo().search([('django_id', '=', bill_to_address.get('id'))], limit=1)
+        if not partner_invoice_id:
+            partner_invoice_id = request.env['res.partner'].create_individual_by_json_and_assign_parent(bill_to_email, bill_to_phone, bill_to_address, None)
+        #Create ship_to_address
+        partner_shipping_id = request.env['res.partner'].sudo().search([('django_id', '=', ship_to_address.get('id'))], limit=1)
+        if not partner_shipping_id:
+            partner_shipping_id = request.env['res.partner'].create_individual_by_json_and_assign_parent(ship_to_email, ship_to_phone, ship_to_address, None)
+        #Parent
+        partner_id = None
+        if bill_to_organization == ship_to_organization:
+            partner_id = request.env['res.partner'].sudo().search([('email', '=', ship_to_email), ('phone', '=', ship_to_phone)])
+            if len(partner_id) == 0:
+                partner_id = request.env['res.partner'].api_create(ship_to_organization, ship_to_email, ship_to_phone, bill_to_address, ship_to_address)
+            partner_invoice_id.sudo().write({'parent_id': partner_id.id})
+            partner_shipping_id.sudo().write({'parent_id': partner_id.id})
+        else:
+            partner_id = partner_shipping_id
+        res = {
+            'partner_id': partner_id or None,
+            'partner_invoice_id': partner_invoice_id or None,
+            'partner_shipping_id': partner_shipping_id or None
+        }
+        return res
+
     def process_master_bom(self, bom_obj, product_template_attribute_value, product_quantity):
-        print("process_master_bom")
-        print(product_template_attribute_value)
         bom_line = request.env['mrp.bom.line'].sudo().search([('bom_id', '=', bom_obj.id),('product_id', '=', product_template_attribute_value.product_id.id)])
         is_exist = False
         if len(bom_line) > 0:
@@ -444,12 +468,11 @@ class LambdaApi(http.Controller):
         return str(qty) + ' X ' + name
 
     def create_new_product_with_initial_variants(self, bom):
-        print("create_new_product_with_initial_variants")
         product_tmpl_obj = request.env['product.template'].sudo().create({
                     'name': bom.get('product'),
                     'type': 'product',
                     'django_id': bom.get('id'),
-                    'django_serial_number': bom.get('serial_number'),
+                    # 'django_serial_number': bom.get('serial_number'),
                     'sale_ok': True,
                     'purchase_ok': False,
                     'route_ids': [[6, False, [5,1]]]
@@ -480,7 +503,6 @@ class LambdaApi(http.Controller):
         return product_tmpl_obj
 
     def create_attribute_value(self, product_tmpl_obj, sku, product_qty):
-        print("create_attribute_value")
         #Search/Create attriubte
         attribute = request.env['product.attribute'].sudo().search([('name', '=', sku.get('category')),
                                                                         ('display_type', '=', 'select'),
@@ -537,8 +559,6 @@ class LambdaApi(http.Controller):
         product_template_attribute_value = request.env['product.template.attribute.value'].sudo().search([('product_tmpl_id', '=', product_tmpl_obj.id),
                                                                                                         ('product_attribute_value_id', '=', attribute_value.id),
                                                                                                         ('attribute_id', '=', attribute.id)])
-        print(product_template_attribute_value)
-        print(product_product)
         
         if product_qty > 1:
             product_template_attribute_value.write({

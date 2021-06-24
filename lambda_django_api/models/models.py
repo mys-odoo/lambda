@@ -26,9 +26,12 @@ class ResPartnerInherit(models.Model):
         self.create_individual_by_json_and_assign_parent(ship_to_address,new_res_partner)
         return new_res_partner
 
-    def create_individual_by_json_and_assign_parent(self, address_json, new_res_partner):
+    def create_individual_by_json_and_assign_parent(self, email, phone, address_json, new_res_partner):
         country_id = self.env['res.country'].search([('code', '=', address_json.get('country_code'))]).id or 233
         state_id = self.env['res.country.state'].search([('code', '=', address_json.get('state')), ('country_id', '=', country_id) ]).id or None
+        parent_id = None
+        if new_res_partner:
+            parent_id = new_res_partner
         vals  = {
             'django_id': address_json.get('id'),
             'name': address_json.get('name'),
@@ -38,8 +41,10 @@ class ResPartnerInherit(models.Model):
             'city': address_json.get('city'),
             'country_id': country_id,
             'state_id': state_id,
-            'parent_id': new_res_partner.id,
-            'company_type': 'person'
+            'parent_id': parent_id,
+            'company_type': 'person',
+            'email': email,
+            'phone': phone
         }
         print("create_individual_by_json_and_assign_parent")
         print(vals)
