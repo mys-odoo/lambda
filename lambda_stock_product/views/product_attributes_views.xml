@@ -14,7 +14,7 @@
             <field name="inherit_id" ref="product.product_template_attribute_value_view_form"/>
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='price_extra']" position="after">
-                    <field name="is_price_linked"/>
+                    <field name="is_price_linked" invisible="1"/>
                     <field name="product_id"/>
                 </xpath>
                 <xpath expr="//sheet" position="after">
