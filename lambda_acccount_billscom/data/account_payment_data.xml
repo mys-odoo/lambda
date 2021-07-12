@@ -27,4 +27,17 @@ model._reconcile_bills_payments()
         <field name="nextcall" eval="(datetime.now() + timedelta(minutes=7)).strftime('%Y-%m-%d %H:%M:%S')"/>
     </record>
 
+    <record model="ir.cron" id="billscom_account_move_bills_cron">
+        <field name="name">Bills.com: Check bills status on bills.com</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="state">code</field>
+        <field name="code"><![CDATA[
+model._check_bills_status()
+]]></field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+        <field name="nextcall" eval="(datetime.now() + timedelta(minutes=7)).strftime('%Y-%m-%d %H:%M:%S')"/>
+    </record>
+
 </odoo>

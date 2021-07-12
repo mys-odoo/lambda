@@ -14,7 +14,7 @@ Bills.com Vendors Intgeration
 
 This module manages approval vendor and payment intgeration
     ''',
-    'depends': ['account_accountant'],
+    'depends': ['account_accountant', 'purchase'],
     'data': [
         'views/res_config_settings_views.xml',
         'views/partner_view.xml',
