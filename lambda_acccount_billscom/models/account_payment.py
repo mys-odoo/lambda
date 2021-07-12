@@ -75,7 +75,7 @@ class AccountPayment(models.Model):
         search_result = []
         company = self.env.company
         if not company.is_billscom_configured:
-            _logger.error('Bills.com crendetails are not configured, skiping cron execution')
+            _logger.error('Bills.com credentials are not configured, skipping cron execution')
         username = company.billscom_username
         password = company.billscom_password
         orgid = company.billscom_orgid

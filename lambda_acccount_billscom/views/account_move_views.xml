@@ -8,6 +8,9 @@
             <field name="partner_bank_id" position="after">
                 <field name="skip_billscom"/>
                 <field name="billscom_id" groups="base.group_no_one,account.group_account_manager"/>
+                <field name="billscom_payment_status"/>
+                <field name="billscom_scheduled_date"/>
+                <field name="billscom_sent"/>
             </field>
         </field>
     </record>
